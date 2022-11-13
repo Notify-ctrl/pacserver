@@ -35,6 +35,7 @@
 #include <sys/utsname.h> /* uname */
 #include <locale.h> /* setlocale */
 #include <errno.h>
+#include <netinet/in.h>
 
 /* alpm */
 #include <alpm.h>
@@ -45,9 +46,12 @@
 #include "util.h"
 #include "conf.h"
 #include "sighandler.h"
+#include "protocol.h"
 
 /* list of targets specified on command line */
 static alpm_list_t *pm_targets;
+
+static int listen_fd;
 
 /* Used to sort the options in --help */
 static int options_cmp(const void *p1, const void *p2)
@@ -289,6 +293,8 @@ static void setuseragent(void)
  */
 static void cleanup(int ret)
 {
+	int true = 1;
+
 	console_cursor_show();
 	remove_soft_interrupt_handler();
 	if(config) {
@@ -300,6 +306,9 @@ static void cleanup(int ret)
 		config_free(config);
 		config = NULL;
 	}
+
+	close(listen_fd);
+	close(connected_fd);
 
 	/* free memory */
 	FREELIST(pm_targets);
@@ -1079,6 +1088,34 @@ static void cl_to_log(int argc, char *argv[])
 	}
 }
 
+static void build_argv(char *buf, int *argc, char **argv) {
+	char processing = 0;
+	char is_space = 0;
+
+	argv[0] = "pacserver";
+	(*argc)++;
+
+	while (*buf) {
+		is_space = (*buf == ' ');
+
+		/* If we are processing an arg, ignore non-spaces */
+		/* If we are waiting for new arg, ignore spaces */
+		if (is_space != processing) {
+			buf++;
+			continue;
+		}
+
+		processing = !is_space;
+		if (is_space) {
+			*buf = 0;
+		} else {
+			argv[(*argc)++] = buf;
+		}
+	}
+
+	argv[*argc] = NULL;
+}
+
 /** Main function.
  * @param argc
  * @param argv
@@ -1088,6 +1125,16 @@ int main(int argc, char *argv[])
 {
 	int ret = 0;
 	uid_t myuid = getuid();
+	struct sockaddr_in serv_addr;
+	char readbuf[4096] = {0};
+	int _argc = 0;
+	char *_argv[256];
+	int true = 1;
+
+	if (argc < 2) {
+		printf("usage: %s <port>\n", argv[0]);
+		return 0;
+	}
 
 	console_cursor_hide();
 	install_segv_handler();
@@ -1116,6 +1163,27 @@ int main(int argc, char *argv[])
 		install_winch_handler();
 	}
 
+	listen_fd = socket(AF_INET, SOCK_STREAM, 0);
+	memset(&serv_addr, '0', sizeof(serv_addr));
+	serv_addr.sin_family = AF_INET;
+  serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+  serv_addr.sin_port = htons(atoi(argv[1]));
+
+	setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &true, sizeof(int));
+
+	ret = bind(listen_fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
+  if (ret != 0) {
+    fprintf(stderr, "Cannot bind");
+    cleanup(1);
+  }
+
+	listen(listen_fd, 1);
+  connected_fd = accept(listen_fd, (struct sockaddr *)NULL, NULL);
+
+	/* Wait for the client send arguments */
+	read(connected_fd, readbuf, sizeof(readbuf));
+	build_argv(readbuf, &_argc, _argv);
+
 	/* Priority of options:
 	 * 1. command line
 	 * 2. config file
@@ -1126,7 +1194,7 @@ int main(int argc, char *argv[])
 	 */
 
 	/* parse the command line */
-	ret = parseargs(argc, argv);
+	ret = parseargs(_argc, _argv);
 	if(ret != 0) {
 		cleanup(ret);
 	}

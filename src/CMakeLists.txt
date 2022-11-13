@@ -3,7 +3,7 @@ set(pacserver_SRCS
   database.c deptest.c
   files.c
   ini.c
-  package.c pacman-conf.c pacman.c
+  package.c pacman-conf.c pacman.c protocol.c
   query.c
   remove.c
   sighandler.c sync.c
