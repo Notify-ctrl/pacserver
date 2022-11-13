@@ -1,5 +1,13 @@
 set(pacserver_SRCS
-  main.c
+  callback.c check.c conf.c
+  database.c deptest.c
+  files.c
+  ini.c
+  package.c pacman-conf.c pacman.c
+  query.c
+  remove.c
+  sighandler.c sync.c
+  upgrade.c util-common.c util.c
 )
 
 target_sources(pacserver PRIVATE ${pacserver_SRCS})
