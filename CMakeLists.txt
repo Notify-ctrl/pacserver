@@ -9,8 +9,8 @@ set(CMAKE_C_STANDARD 99)
 # definitions for libalpm
 add_definitions (-DHAVE_LIBCURL)
 add_definitions (-DHAVE_LIBSSL)
-add_definitions (-DLIB_VERSION="10.0.2")
-add_definitions (-DPACKAGE_VERSION="5.0.2")
+add_definitions (-DLIB_VERSION="13.0.2")
+add_definitions (-DPACKAGE_VERSION="6.0.2")
 
 add_definitions (-DFSSTATSTYPE=struct\ statvfs)
 add_definitions (-DHAVE_SYS_STATVFS_H)
@@ -27,6 +27,11 @@ add_definitions(-DLOGFILE="pacman/pacman.log")
 add_definitions(-DCACHEDIR="pacman/pkg")
 add_definitions(-DHOOKDIR="pacman/hooks")
 add_definitions(-DROOTDIR=".")
+add_definitions(-DENABLE_NLS)
+add_definitions(-DLOCALEDIR="pacman/locale")
+add_definitions (-DPACKAGE="pacman")
+
+include("i18n.cmake")
 
 add_library(alpm SHARED)
 add_subdirectory(lib)
