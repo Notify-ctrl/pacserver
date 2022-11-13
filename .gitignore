@@ -1,0 +1,9 @@
+build/
+.vscode/
+.idea/
+.kdev/
+*.o
+*-swp
+*.user
+*.dll
+*.exe
