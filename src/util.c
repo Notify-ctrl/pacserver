@@ -110,6 +110,9 @@ int trans_release(void)
 
 int needs_root(void)
 {
+	if (1) {		/* Not need root because pacman only modify user's dir */
+		return 0;
+	}
 	if(config->sysroot) {
 		return 1;
 	}
