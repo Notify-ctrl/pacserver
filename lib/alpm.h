@@ -1137,7 +1137,10 @@ typedef enum _alpm_progress_t {
 	/** Loading packages from disk */
 	ALPM_PROGRESS_LOAD_START,
 	/** Checking signatures of packages */
-	ALPM_PROGRESS_KEYRING_START
+	ALPM_PROGRESS_KEYRING_START,
+
+  /** Downloading file */
+  ALPM_PROGRESS_DOWNLOADING,
 } alpm_progress_t;
 
 /** Progress callback

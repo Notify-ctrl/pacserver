@@ -38,6 +38,7 @@
 #include "callback.h"
 #include "util.h"
 #include "conf.h"
+#include "protocol.h"
 
 /* download progress bar */
 static int total_enabled = 0;
@@ -218,6 +219,7 @@ static int number_length(size_t n)
 void cb_event(void *ctx, alpm_event_t *event)
 {
 	(void)ctx;
+  char buf[10000] = {0};
 	if(config->print) {
 		console_cursor_move_end();
 		return;
@@ -225,55 +227,55 @@ void cb_event(void *ctx, alpm_event_t *event)
 	switch(event->type) {
 		case ALPM_EVENT_HOOK_START:
 			if(event->hook.when == ALPM_HOOK_PRE_TRANSACTION) {
-				colon_printf(_("Running pre-transaction hooks...\n"));
+				snprintf(buf, sizeof(buf), _("Running pre-transaction hooks...\n"));
 			} else {
-				colon_printf(_("Running post-transaction hooks...\n"));
+				snprintf(buf, sizeof(buf), _("Running post-transaction hooks...\n"));
 			}
 			break;
 		case ALPM_EVENT_HOOK_RUN_START:
 			{
 				alpm_event_hook_run_t *e = &event->hook_run;
 				int digits = number_length(e->total);
-				printf("(%*zu/%*zu) %s\n", digits, e->position,
+				snprintf(buf, sizeof(buf), "(%*zu/%*zu) %s\n", digits, e->position,
 						digits, e->total,
 						e->desc ? e->desc : e->name);
 			}
 			break;
 		case ALPM_EVENT_CHECKDEPS_START:
-			printf(_("checking dependencies...\n"));
+			snprintf(buf, sizeof(buf), _("checking dependencies...\n"));
 			break;
 		case ALPM_EVENT_FILECONFLICTS_START:
 			if(config->noprogressbar) {
-				printf(_("checking for file conflicts...\n"));
+				snprintf(buf, sizeof(buf), _("checking for file conflicts...\n"));
 			}
 			break;
 		case ALPM_EVENT_RESOLVEDEPS_START:
-			printf(_("resolving dependencies...\n"));
+			snprintf(buf, sizeof(buf), _("resolving dependencies...\n"));
 			break;
 		case ALPM_EVENT_INTERCONFLICTS_START:
-			printf(_("looking for conflicting packages...\n"));
+			snprintf(buf, sizeof(buf), _("looking for conflicting packages...\n"));
 			break;
 		case ALPM_EVENT_TRANSACTION_START:
-			colon_printf(_("Processing package changes...\n"));
+			snprintf(buf, sizeof(buf), _("Processing package changes...\n"));
 			break;
 		case ALPM_EVENT_PACKAGE_OPERATION_START:
 			if(config->noprogressbar) {
 				alpm_event_package_operation_t *e = &event->package_operation;
 				switch(e->operation) {
 					case ALPM_PACKAGE_INSTALL:
-						printf(_("installing %s...\n"), alpm_pkg_get_name(e->newpkg));
+						snprintf(buf, sizeof(buf), _("installing %s...\n"), alpm_pkg_get_name(e->newpkg));
 						break;
 					case ALPM_PACKAGE_UPGRADE:
-						printf(_("upgrading %s...\n"), alpm_pkg_get_name(e->newpkg));
+						snprintf(buf, sizeof(buf), _("upgrading %s...\n"), alpm_pkg_get_name(e->newpkg));
 						break;
 					case ALPM_PACKAGE_REINSTALL:
-						printf(_("reinstalling %s...\n"), alpm_pkg_get_name(e->newpkg));
+						snprintf(buf, sizeof(buf), _("reinstalling %s...\n"), alpm_pkg_get_name(e->newpkg));
 						break;
 					case ALPM_PACKAGE_DOWNGRADE:
-						printf(_("downgrading %s...\n"), alpm_pkg_get_name(e->newpkg));
+						snprintf(buf, sizeof(buf), _("downgrading %s...\n"), alpm_pkg_get_name(e->newpkg));
 						break;
 					case ALPM_PACKAGE_REMOVE:
-						printf(_("removing %s...\n"), alpm_pkg_get_name(e->oldpkg));
+						snprintf(buf, sizeof(buf), _("removing %s...\n"), alpm_pkg_get_name(e->oldpkg));
 						break;
 				}
 			}
@@ -297,20 +299,20 @@ void cb_event(void *ctx, alpm_event_t *event)
 			break;
 		case ALPM_EVENT_INTEGRITY_START:
 			if(config->noprogressbar) {
-				printf(_("checking package integrity...\n"));
+				snprintf(buf, sizeof(buf), _("checking package integrity...\n"));
 			}
 			break;
 		case ALPM_EVENT_KEYRING_START:
 			if(config->noprogressbar) {
-				printf(_("checking keyring...\n"));
+				snprintf(buf, sizeof(buf), _("checking keyring...\n"));
 			}
 			break;
 		case ALPM_EVENT_KEY_DOWNLOAD_START:
-			printf(_("downloading required keys...\n"));
+			snprintf(buf, sizeof(buf), _("downloading required keys...\n"));
 			break;
 		case ALPM_EVENT_LOAD_START:
 			if(config->noprogressbar) {
-				printf(_("loading package files...\n"));
+				snprintf(buf, sizeof(buf), _("loading package files...\n"));
 			}
 			break;
 		case ALPM_EVENT_SCRIPTLET_INFO:
@@ -320,7 +322,7 @@ void cb_event(void *ctx, alpm_event_t *event)
 			on_progress = 1;
 			break;
 		case ALPM_EVENT_PKG_RETRIEVE_START:
-			colon_printf(_("Retrieving packages...\n"));
+			snprintf(buf, sizeof(buf), _("Retrieving packages...\n"));
 			on_progress = 1;
 			list_total_pkgs = event->pkg_retrieve.num;
 			list_total = event->pkg_retrieve.total_size;
@@ -332,14 +334,14 @@ void cb_event(void *ctx, alpm_event_t *event)
 			break;
 		case ALPM_EVENT_DISKSPACE_START:
 			if(config->noprogressbar) {
-				printf(_("checking available disk space...\n"));
+				snprintf(buf, sizeof(buf), _("checking available disk space...\n"));
 			}
 			break;
 		case ALPM_EVENT_OPTDEP_REMOVAL:
 			{
 				alpm_event_optdep_removal_t *e = &event->optdep_removal;
 				char *dep_string = alpm_dep_compute_string(e->optdep);
-				colon_printf(_("%s optionally requires %s\n"),
+				snprintf(buf, sizeof(buf), _("%s optionally requires %s\n"),
 						alpm_pkg_get_name(e->pkg),
 						dep_string);
 				free(dep_string);
@@ -416,6 +418,9 @@ void cb_event(void *ctx, alpm_event_t *event)
 			/* nothing */
 			break;
 	}
+  if (strlen(buf) > 0) {
+    send_log(connected_fd, PM_MSG_EVENT, buf);
+  }
 	fflush(stdout);
 }
 
@@ -546,145 +551,8 @@ void cb_question(void *ctx, alpm_question_t *question)
 void cb_progress(void *ctx, alpm_progress_t event, const char *pkgname,
 		int percent, size_t howmany, size_t current)
 {
-	static int prevpercent;
-	static size_t prevcurrent;
-	/* size of line to allocate for text printing (e.g. not progressbar) */
-	int infolen;
-	int digits, textlen;
-	char *opr = NULL;
-	/* used for wide character width determination and printing */
-	int len, wclen, wcwid, padwid;
-	wchar_t *wcstr;
-
-	const unsigned short cols = getcols();
-
-	(void)ctx;
-
-	if(config->noprogressbar || cols == 0) {
-		return;
-	}
-
-	if(percent == 0) {
-		get_update_timediff(1);
-	} else if(percent == 100) {
-		/* no need for timediff update, but unconditionally continue unless we
-		 * already completed on a previous call */
-		if(prevpercent == 100) {
-			return;
-		}
-	} else {
-		if(current != prevcurrent) {
-			/* update always */
-		} else if(!pkgname || percent == prevpercent ||
-				get_update_timediff(0) < UPDATE_SPEED_MS) {
-			/* only update the progress bar when we have a package name, the
-			 * percentage has changed, and it has been long enough. */
-			return;
-		}
-	}
-
-	prevpercent = percent;
-	prevcurrent = current;
-
-	/* set text of message to display */
-	switch(event) {
-		case ALPM_PROGRESS_ADD_START:
-			opr = _("installing");
-			break;
-		case ALPM_PROGRESS_UPGRADE_START:
-			opr = _("upgrading");
-			break;
-		case ALPM_PROGRESS_DOWNGRADE_START:
-			opr = _("downgrading");
-			break;
-		case ALPM_PROGRESS_REINSTALL_START:
-			opr = _("reinstalling");
-			break;
-		case ALPM_PROGRESS_REMOVE_START:
-			opr = _("removing");
-			break;
-		case ALPM_PROGRESS_CONFLICTS_START:
-			opr = _("checking for file conflicts");
-			break;
-		case ALPM_PROGRESS_DISKSPACE_START:
-			opr = _("checking available disk space");
-			break;
-		case ALPM_PROGRESS_INTEGRITY_START:
-			opr = _("checking package integrity");
-			break;
-		case ALPM_PROGRESS_KEYRING_START:
-			opr = _("checking keys in keyring");
-			break;
-		case ALPM_PROGRESS_LOAD_START:
-			opr = _("loading package files");
-			break;
-		default:
-			return;
-	}
-
-	infolen = cols * 6 / 10;
-	if(infolen < 50) {
-		infolen = 50;
-	}
-
-	/* find # of digits in package counts to scale output */
-	digits = number_length(howmany);
-
-	/* determine room left for non-digits text [not ( 1/12) part] */
-	textlen = infolen - 3 /* (/) */ - (2 * digits) - 1 /* space */;
-
-	/* In order to deal with characters from all locales, we have to worry
-	 * about wide characters and their column widths. A lot of stuff is
-	 * done here to figure out the actual number of screen columns used
-	 * by the output, and then pad it accordingly so we fill the terminal.
-	 */
-	/* len = opr len + pkgname len (if available) + space + null */
-	len = strlen(opr) + ((pkgname) ? strlen(pkgname) : 0) + 2;
-	wcstr = calloc(len, sizeof(wchar_t));
-	/* print our strings to the alloc'ed memory */
-#if defined(HAVE_SWPRINTF)
-	wclen = swprintf(wcstr, len, L"%s %s", opr, pkgname);
-#else
-	/* because the format string was simple, we can easily do this without
-	 * using swprintf, although it is probably not as safe/fast. The max
-	 * chars we can copy is decremented each time by subtracting the length
-	 * of the already printed/copied wide char string. */
-	wclen = mbstowcs(wcstr, opr, len);
-	wclen += mbstowcs(wcstr + wclen, " ", len - wclen);
-	wclen += mbstowcs(wcstr + wclen, pkgname, len - wclen);
-#endif
-	wcwid = wcswidth(wcstr, wclen);
-	padwid = textlen - wcwid;
-	/* if padwid is < 0, we need to trim the string so padwid = 0 */
-	if(padwid < 0) {
-		int i = textlen - 3;
-		wchar_t *p = wcstr;
-		/* grab the max number of char columns we can fill */
-		while(i > wcwidth(*p)) {
-			i -= wcwidth(*p);
-			p++;
-		}
-		/* then add the ellipsis and fill out any extra padding */
-		wcscpy(p, L"...");
-		padwid = i;
-
-	}
-
-	printf("(%*zu/%*zu) %ls%-*s", digits, current,
-			digits, howmany, wcstr, padwid, "");
-
-	free(wcstr);
-
-	/* call refactored fill progress function */
-	fill_progress(percent, cols - infolen);
-
-	if(percent == 100) {
-		putchar('\n');
-		flush_output_list();
-		on_progress = 0;
-	} else {
-		on_progress = 1;
-	}
+  /* leave it to the client */
+  send_progress(connected_fd, event, pkgname, percent, howmany, current);
 }
 
 static int dload_progressbar_enabled(void)
@@ -944,37 +812,9 @@ static void update_bar_finalstats(struct pacman_progress_bar *bar)
 /* Handles download progress event */
 static void dload_progress_event(const char *filename, alpm_download_event_progress_t *data)
 {
-	int index;
-	struct pacman_progress_bar *bar;
-	bool ok;
-	off_t last_chunk_amount;
-
-	if(!dload_progressbar_enabled()) {
-		return;
-	}
-
-	ok = find_bar_for_filename(filename, &index, &bar);
-	assert(ok);
-
-	/* Total size is received after the download starts. */
-	last_chunk_amount = data->downloaded - bar->xfered;
-	bar->xfered = data->downloaded;
-	bar->total_size = data->total;
-
-	if(update_bar_stats(bar)) {
-		console_cursor_goto_bar(index);
-		draw_pacman_progress_bar(bar);
-	}
-
-	if(total_enabled) {
-		totalbar->xfered += last_chunk_amount;
-		if(update_bar_stats(totalbar)) {
-			console_cursor_move_end();
-			draw_pacman_progress_bar(totalbar);
-		}
-	}
-
-	fflush(stdout);
+  int percent = data->downloaded * 100 / data->total;
+  cb_progress(NULL, ALPM_PROGRESS_DOWNLOADING, filename,
+    percent, data->total, data->downloaded);
 }
 
 /* download retried */

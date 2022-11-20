@@ -1111,6 +1111,7 @@ static void build_argv(char *buf, int *argc, char **argv) {
 		} else {
 			argv[(*argc)++] = buf;
 		}
+    buf++;
 	}
 
 	argv[*argc] = NULL;

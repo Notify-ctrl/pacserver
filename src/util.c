@@ -45,6 +45,7 @@
 #include "util.h"
 #include "conf.h"
 #include "callback.h"
+#include "protocol.h"
 
 static int cached_columns = -1;
 
@@ -110,27 +111,7 @@ int trans_release(void)
 
 int needs_root(void)
 {
-	if (1) {		/* Not need root because pacman only modify user's dir */
-		return 0;
-	}
-	if(config->sysroot) {
-		return 1;
-	}
-	switch(config->op) {
-		case PM_OP_DATABASE:
-			return !config->op_q_check;
-		case PM_OP_UPGRADE:
-		case PM_OP_REMOVE:
-			return !config->print;
-		case PM_OP_SYNC:
-			return (config->op_s_clean || config->op_s_sync ||
-					(!config->group && !config->op_s_info && !config->op_q_list &&
-					 !config->op_s_search && !config->print));
-		case PM_OP_FILES:
-			return config->op_s_sync;
-		default:
-			return 0;
-	}
+	return 0;
 }
 
 int check_syncdbs(size_t need_repos, int check_valid)
@@ -1736,13 +1717,19 @@ static int question(short preset, const char *format, va_list args)
 	return 0;
 }
 
+static int question_server(short preset, const char *format, va_list args) {
+  char buf[10000];
+  vsnprintf(buf, sizeof(buf), format, args);
+  return send_yes_no(connected_fd, buf, preset);
+}
+
 int yesno(const char *format, ...)
 {
 	int ret;
 	va_list args;
 
 	va_start(args, format);
-	ret = question(1, format, args);
+	ret = question_server(1, format, args);
 	va_end(args);
 
 	return ret;
@@ -1754,7 +1741,7 @@ int noyes(const char *format, ...)
 	va_list args;
 
 	va_start(args, format);
-	ret = question(0, format, args);
+	ret = question_server(0, format, args);
 	va_end(args);
 
 	return ret;
@@ -1779,11 +1766,26 @@ int pm_printf(alpm_loglevel_t level, const char *format, ...)
 {
 	int ret;
 	va_list args;
+  char buf[10000];
 
 	/* print the message using va_arg list */
 	va_start(args, format);
-	ret = pm_vfprintf(stderr, level, format, args);
+	ret = vsnprintf(buf, sizeof(buf), format, args);
 	va_end(args);
+
+  pm_message_type type;
+  switch (level) {
+  case ALPM_LOG_ERROR: 
+    type = PM_MSG_ERROR;
+    break;
+  case ALPM_LOG_WARNING:
+    type = PM_MSG_WARNING;
+    break;
+  default:
+    type = PM_MSG_INFO;
+    break;
+  }
+  send_log(connected_fd, type, buf);
 
 	return ret;
 }
