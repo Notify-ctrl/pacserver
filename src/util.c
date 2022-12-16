@@ -18,6 +18,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#define _GNU_SOURCE
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
@@ -540,18 +541,18 @@ static void table_print_line(const alpm_list_t *line, short col_padding,
 		cell_width = cell->mode & CELL_RIGHT_ALIGN ? cell_width : -cell_width;
 
 		if(need_padding) {
-			printf("%*s", col_padding, "");
+			pm_printf(0, "%*s", col_padding, "");
 		}
 
 		if(cell->mode & CELL_TITLE) {
-			printf("%s%*s%s", config->colstr.title, cell_width, str, config->colstr.nocolor);
+			pm_printf(0, "%s%*s%s", config->colstr.title, cell_width, str, config->colstr.nocolor);
 		} else {
-			printf("%*s", cell_width, str);
+			pm_printf(0, "%*s", cell_width, str);
 		}
-		need_padding = 1;
+		//need_padding = 1;
 	}
 
-	printf("\n");
+	//printf("\n");
 }
 
 
@@ -672,7 +673,7 @@ static int table_display(const alpm_list_t *header,
 
 	if(header) {
 		table_print_line(header, padding, totalcols, widths, has_data);
-		printf("\n");
+		//printf("\n");
 	}
 
 	for(i = rows; i; i = alpm_list_next(i)) {
@@ -1766,11 +1767,11 @@ int pm_printf(alpm_loglevel_t level, const char *format, ...)
 {
 	int ret;
 	va_list args;
-  char buf[10000];
+  char *buf;
 
 	/* print the message using va_arg list */
 	va_start(args, format);
-	ret = vsnprintf(buf, sizeof(buf), format, args);
+	ret = vasprintf(&buf, format, args);
 	va_end(args);
 
   pm_message_type type;
@@ -1786,6 +1787,7 @@ int pm_printf(alpm_loglevel_t level, const char *format, ...)
     break;
   }
   send_log(connected_fd, type, buf);
+  free(buf);
 
 	return ret;
 }

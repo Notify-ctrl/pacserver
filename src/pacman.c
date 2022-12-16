@@ -1170,6 +1170,8 @@ int main(int argc, char *argv[])
   serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
   serv_addr.sin_port = htons(atoi(argv[1]));
 
+  config->color = PM_COLOR_OFF;
+
 	setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &true, sizeof(int));
 
 	ret = bind(listen_fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr));

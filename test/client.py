@@ -15,7 +15,7 @@ def handle_msg(client, data):
   if type == PM_MSG_QUEST:
     client.send(b'n')
   else:
-    pass
+    client.send(b'n')
 
 def main():
   client = socket(AF_INET, SOCK_STREAM)
@@ -28,8 +28,8 @@ def main():
       return
 
     print("RX:", recv_data.decode('utf-8'))
-    #data = json.loads(recv_data)
-    #handle_msg(client, data)
+    data = json.loads(recv_data)
+    handle_msg(client, data)
 
 main()
 
