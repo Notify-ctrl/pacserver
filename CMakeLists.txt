@@ -30,6 +30,8 @@ add_definitions(-DROOTDIR=".")
 add_definitions(-DENABLE_NLS)
 add_definitions(-DLOCALEDIR="pacman/locale")
 add_definitions (-DPACKAGE="pacman")
+add_definitions(-DHAVE_GETMNTENT)
+add_definitions(-DHAVE_MNTENT_H)
 
 include("i18n.cmake")
 

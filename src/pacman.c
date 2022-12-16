@@ -1264,7 +1264,7 @@ int main(int argc, char *argv[])
 		cleanup(EXIT_FAILURE);
 	}
 
-	pm_printf(ALPM_LOG_DEBUG, "pacman v%s - libalpm v%s\n", PACKAGE_VERSION, alpm_version());
+	// pm_printf(ALPM_LOG_DEBUG, "pacman v%s - libalpm v%s\n", PACKAGE_VERSION, alpm_version());
 
 	/* parse the config file */
 	ret = parseconfig(config->configfile);

@@ -348,7 +348,7 @@ static int download_with_xfercommand(void *ctx, const char *url,
 	if(config->logmask & ALPM_LOG_DEBUG) {
 		char *cmd = arg_to_string(config->xfercommand_argc, (char**)argv);
 		if(cmd) {
-			pm_printf(ALPM_LOG_DEBUG, "running command: %s\n", cmd);
+			// pm_printf(ALPM_LOG_DEBUG, "running command: %s\n", cmd);
 			free(cmd);
 		}
 	}
@@ -359,8 +359,8 @@ static int download_with_xfercommand(void *ctx, const char *url,
 		ret = -1;
 	} else if(retval != 0) {
 		/* download failed */
-		pm_printf(ALPM_LOG_DEBUG, "XferCommand command returned non-zero status "
-				"code (%d)\n", retval);
+		// pm_printf(ALPM_LOG_DEBUG, "XferCommand command returned non-zero status "
+		//		"code (%d)\n", retval);
 		ret = -1;
 	} else {
 		/* download was successful */
@@ -407,7 +407,7 @@ int config_add_architecture(char *arch)
 		arch = newarch;
 	}
 
-	pm_printf(ALPM_LOG_DEBUG, "config: arch: %s\n", arch);
+	// pm_printf(ALPM_LOG_DEBUG, "config: arch: %s\n", arch);
 	config->architectures = alpm_list_add(config->architectures, arch);
 	return 0;
 }
@@ -588,7 +588,7 @@ static void setrepeatingoption(char *ptr, const char *option,
 	val = strtok_r(ptr, " ", &saveptr);
 	while(val) {
 		*list = alpm_list_add(*list, strdup(val));
-		pm_printf(ALPM_LOG_DEBUG, "config: %s: %s\n", option, val);
+		// pm_printf(ALPM_LOG_DEBUG, "config: %s: %s\n", option, val);
 		val = strtok_r(NULL, " ", &saveptr);
 	}
 }
@@ -600,13 +600,13 @@ static int _parse_options(const char *key, char *value,
 		/* options without settings */
 		if(strcmp(key, "UseSyslog") == 0) {
 			config->usesyslog = 1;
-			pm_printf(ALPM_LOG_DEBUG, "config: usesyslog\n");
+			// pm_printf(ALPM_LOG_DEBUG, "config: usesyslog\n");
 		} else if(strcmp(key, "ILoveCandy") == 0) {
 			config->chomp = 1;
-			pm_printf(ALPM_LOG_DEBUG, "config: chomp\n");
+			// pm_printf(ALPM_LOG_DEBUG, "config: chomp\n");
 		} else if(strcmp(key, "VerbosePkgLists") == 0) {
 			config->verbosepkglists = 1;
-			pm_printf(ALPM_LOG_DEBUG, "config: verbosepkglists\n");
+			// pm_printf(ALPM_LOG_DEBUG, "config: verbosepkglists\n");
 		} else if(strcmp(key, "CheckSpace") == 0) {
 			config->checkspace = 1;
 		} else if(strcmp(key, "Color") == 0) {
@@ -650,23 +650,23 @@ static int _parse_options(const char *key, char *value,
 			/* don't overwrite a path specified on the command line */
 			if(!config->dbpath) {
 				config->dbpath = strdup(value);
-				pm_printf(ALPM_LOG_DEBUG, "config: dbpath: %s\n", value);
+				// pm_printf(ALPM_LOG_DEBUG, "config: dbpath: %s\n", value);
 			}
 		} else if(strcmp(key, "RootDir") == 0) {
 			/* don't overwrite a path specified on the command line */
 			if(!config->rootdir) {
 				config->rootdir = strdup(value);
-				pm_printf(ALPM_LOG_DEBUG, "config: rootdir: %s\n", value);
+				// pm_printf(ALPM_LOG_DEBUG, "config: rootdir: %s\n", value);
 			}
 		} else if(strcmp(key, "GPGDir") == 0) {
 			if(!config->gpgdir) {
 				config->gpgdir = strdup(value);
-				pm_printf(ALPM_LOG_DEBUG, "config: gpgdir: %s\n", value);
+				// pm_printf(ALPM_LOG_DEBUG, "config: gpgdir: %s\n", value);
 			}
 		} else if(strcmp(key, "LogFile") == 0) {
 			if(!config->logfile) {
 				config->logfile = strdup(value);
-				pm_printf(ALPM_LOG_DEBUG, "config: logfile: %s\n", value);
+				// pm_printf(ALPM_LOG_DEBUG, "config: logfile: %s\n", value);
 			}
 		} else if(strcmp(key, "XferCommand") == 0) {
 			char **c;
@@ -681,7 +681,7 @@ static int _parse_options(const char *key, char *value,
 				config->xfercommand_argc++;
 			}
 			config->xfercommand = strdup(value);
-			pm_printf(ALPM_LOG_DEBUG, "config: xfercommand: %s\n", value);
+			// pm_printf(ALPM_LOG_DEBUG, "config: xfercommand: %s\n", value);
 		} else if(strcmp(key, "CleanMethod") == 0) {
 			alpm_list_t *methods = NULL;
 			setrepeatingoption(value, "CleanMethod", &methods);
@@ -805,8 +805,8 @@ static int register_repo(config_repo_t *repo)
 		return 1;
 	}
 
-	pm_printf(ALPM_LOG_DEBUG, "setting usage of %d for %s repository\n",
-			repo->usage, repo->name);
+	// pm_printf(ALPM_LOG_DEBUG, "setting usage of %d for %s repository\n",
+	//		repo->usage, repo->name);
 	alpm_db_set_usage(db, repo->usage);
 
 	for(i = repo->servers; i; i = alpm_list_next(i)) {
@@ -831,7 +831,7 @@ static int setup_libalpm(void)
 	alpm_handle_t *handle;
 	alpm_list_t *i;
 
-	pm_printf(ALPM_LOG_DEBUG, "setup_libalpm called\n");
+	// pm_printf(ALPM_LOG_DEBUG, "setup_libalpm called\n");
 
 	/* initialize library */
 	handle = alpm_initialize(config->rootdir, config->dbpath, &err);
@@ -919,7 +919,7 @@ static int setup_libalpm(void)
 		if(!dep) {
 			return 1;
 		}
-		pm_printf(ALPM_LOG_DEBUG, "parsed assume installed: %s %s\n", dep->name, dep->version);
+		// pm_printf(ALPM_LOG_DEBUG, "parsed assume installed: %s %s\n", dep->name, dep->version);
 
 		ret = alpm_option_add_assumeinstalled(handle, dep);
 		alpm_dep_free(dep);
@@ -1055,24 +1055,24 @@ static int process_include(const char *value, void *data,
 	globret = glob(value, GLOB_NOCHECK, NULL, &globbuf);
 	switch(globret) {
 		case GLOB_NOSPACE:
-			pm_printf(ALPM_LOG_DEBUG,
-					"config file %s, line %d: include globbing out of space\n",
-					file, linenum);
+			// pm_printf(ALPM_LOG_DEBUG,
+			//		"config file %s, line %d: include globbing out of space\n",
+			//		file, linenum);
 			break;
 		case GLOB_ABORTED:
-			pm_printf(ALPM_LOG_DEBUG,
-					"config file %s, line %d: include globbing read error for %s\n",
-					file, linenum, value);
+			// pm_printf(ALPM_LOG_DEBUG,
+			//		"config file %s, line %d: include globbing read error for %s\n",
+			//		file, linenum, value);
 			break;
 		case GLOB_NOMATCH:
-			pm_printf(ALPM_LOG_DEBUG,
-					"config file %s, line %d: no include found for %s\n",
-					file, linenum, value);
+			// pm_printf(ALPM_LOG_DEBUG,
+			//		"config file %s, line %d: no include found for %s\n",
+			//		file, linenum, value);
 			break;
 		default:
 			for(gindex = 0; gindex < globbuf.gl_pathc; gindex++) {
-				pm_printf(ALPM_LOG_DEBUG, "config file %s, line %d: including %s\n",
-						file, linenum, globbuf.gl_pathv[gindex]);
+				// pm_printf(ALPM_LOG_DEBUG, "config file %s, line %d: including %s\n",
+				//		file, linenum, globbuf.gl_pathv[gindex]);
 				ret = parse_ini(globbuf.gl_pathv[gindex], _parse_directive, data);
 				if(ret) {
 					goto cleanup;
@@ -1097,7 +1097,7 @@ static int _parse_directive(const char *file, int linenum, const char *name,
 		return 1;
 	} else if(!key && !value) {
 		section->name = name;
-		pm_printf(ALPM_LOG_DEBUG, "config: new section '%s'\n", name);
+		// pm_printf(ALPM_LOG_DEBUG, "config: new section '%s'\n", name);
 		if(strcmp(name, "options") == 0) {
 			section->repo = NULL;
 		} else {
@@ -1185,7 +1185,7 @@ int setdefaults(config_t *c)
 int parseconfigfile(const char *file)
 {
 	struct section_t section = {0};
-	pm_printf(ALPM_LOG_DEBUG, "config: attempting to read file %s\n", file);
+	// pm_printf(ALPM_LOG_DEBUG, "config: attempting to read file %s\n", file);
 	return parse_ini(file, _parse_directive, &section);
 }
 
@@ -1202,7 +1202,7 @@ int parseconfig(const char *file)
 	if((ret = setdefaults(config))) {
 		return ret;
 	}
-	pm_printf(ALPM_LOG_DEBUG, "config: finished parsing %s\n", file);
+	// pm_printf(ALPM_LOG_DEBUG, "config: finished parsing %s\n", file);
 	if((ret = setup_libalpm())) {
 		return ret;
 	}
