@@ -694,15 +694,16 @@ void list_display(const char *title, const alpm_list_t *list,
 
 	if(title) {
 		len = string_length(title) + 1;
-		printf("%s%s%s ", config->colstr.title, title, config->colstr.nocolor);
+		pm_printf(0, "%s%s%s ", config->colstr.title, title, config->colstr.nocolor);
 	}
 
 	if(!list) {
-		printf("%s\n", _("None"));
+		pm_printf(0, "%s\n", _("None"));
 	} else {
 		size_t cols = len;
 		const char *str = list->data;
-		fputs(str, stdout);
+		//fputs(str, stdout);
+    pm_printf(0, "- %s", str);
 		cols += string_length(str);
 		for(i = alpm_list_next(list); i; i = alpm_list_next(i)) {
 			str = i->data;
@@ -711,19 +712,20 @@ void list_display(const char *title, const alpm_list_t *list,
 			if(maxcols > len && cols + s + 2 >= maxcols) {
 				size_t j;
 				cols = len;
-				printf("\n");
+				//printf("\n");
 				for(j = 1; j <= len; j++) {
-					printf(" ");
+					//printf(" ");
 				}
 			} else if(cols != len) {
 				/* 2 spaces are added if this is not the first element on a line. */
-				printf("  ");
+				//printf("  ");
 				cols += 2;
 			}
-			fputs(str, stdout);
+			//fputs(str, stdout);
+      pm_printf(0, "- %s", str);
 			cols += s;
 		}
-		putchar('\n');
+		//putchar('\n');
 	}
 }
 
